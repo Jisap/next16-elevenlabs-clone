@@ -1,0 +1,72 @@
+"use client";
+
+import { z } from "zod";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { formOptions } from "@tanstack/react-form";
+import { useAppForm } from "@/hooks/use-app-form";
+
+const ttsFormSchema = z.object({                               // Esquema de validación del formulario TTS con Zod
+  text: z.string().min(1, "Please enter some text"),
+  voiceId: z.string().min(1, "Please select a voice"),
+  temperature: z.number(),
+  topP: z.number(),
+  topK: z.number(),
+  repetitionPenalty: z.number(),
+});
+
+export type TTSFormValues = z.infer<typeof ttsFormSchema>;     // Tipos inferidos automáticamente desde el esquema Zod
+
+export const defaultTTSValues: TTSFormValues = {               // Valores iniciales del formulario. Se usan como base en `ttsFormOptions
+  text: "",
+  voiceId: "",
+  temperature: 0.8,
+  topP: 0.95,
+  topK: 1000,
+  repetitionPenalty: 1.2,
+};
+
+/**
+ * Configuración base del formulario TTS, portable y reutilizable.
+ *
+ * Usar con spread en `useAppForm` para evitar repetir la config en cada componente:
+ * @example
+ * const form = useAppForm({
+ *   ...ttsFormOptions,
+ *   onSubmit: async ({ value }) => { ... },
+ * });
+ */
+export const ttsFormOptions = formOptions({                     // Configuración base del formulario TTS, portable y reutilizable 
+  defaultValues: defaultTTSValues,
+});
+
+
+import React from 'react'
+
+export const TextToSpeechForm = ({
+  children,
+  defaultValues
+}: {
+  children: React.ReactNode;
+  defaultValues: TTSFormValues;
+}) => {
+
+  const form = useAppForm({
+    ...ttsFormOptions,
+    defaultValues: defaultValues ?? defaultTTSValues,
+    validators: {
+      onSubmit: ttsFormSchema
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        // TODO
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to generate audio";
+        toast.error(message);
+      }
+    }
+  })
+
+  return <form.AppForm>{children}</form.AppForm>;
+}
+
