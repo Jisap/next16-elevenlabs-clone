@@ -6,13 +6,14 @@ import { TextInputPanel } from "@/features/text-to-speech/components/text-input-
 
 
 import React from 'react'
+import { VoicePreviewPlaceholder } from "../components/voice-preview-placeholder";
 
 export const TextToSpeechView = () => {
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <TextInputPanel />
-        {/* <VoicePreviewPlaceholder /> */}
+        <VoicePreviewPlaceholder />
       </div>
 
       {/* <SettingsPanel /> */}
