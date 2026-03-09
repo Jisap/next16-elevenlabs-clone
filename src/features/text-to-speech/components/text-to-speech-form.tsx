@@ -59,6 +59,7 @@ export const TextToSpeechForm = ({
     },
     onSubmit: async ({ value }) => {
       try {
+        console.log(value)
         // TODO
       } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to generate audio";
