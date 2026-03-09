@@ -10,8 +10,8 @@ const HealthCheck = () => {
   const { data } = useSuspenseQuery(trpc.health.queryOptions());
 
   return (
-    <div className="rounded-lg border p-6 text-center">
-      <p className="text-muted-foreground text-sm">TRPC Status</p>
+    <div className="rounded-lg border p-6 text-center bg-green-300">
+      <p className="text-muted-foreground  font-semibold text-sm">TRPC Status</p>
       <p className="mt-2 text-lg font-semibold">{data.status}</p>
     </div>
   )
