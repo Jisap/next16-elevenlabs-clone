@@ -34,7 +34,8 @@ export const voicesRouter = createTRPCRouter({
         }
         : {};                                                             // Si no hay query, filtro vacío
 
-      // Ejecuta ambas consultas en paralelo: voces personalizadas y del sistema
+      // Ejecuta ambas consultas en paralelo: 
+      // voces personalizadas y del sistema
       const [custom, system] = await Promise.all([
         prisma.voice.findMany({
           where: {
@@ -72,7 +73,36 @@ export const voicesRouter = createTRPCRouter({
       return { custom, system };                                          // Retorna ambas listas separadas
     }),
 
-})
+  delete: orgProcedure                                                    // Procedimiento protegido que requiere autenticación de organización
+    .input(z.object({ id: z.string() }))                                  // Valida que se reciba el ID de la voz a eliminar
+    .mutation(async ({ ctx, input }) => {                                 // Mutación para eliminar una voz
+      const voice = await prisma.voice.findUnique({                       // Busca la voz en la base de datos
+        where: {
+          id: input.id,                                                       // Identificador de la voz a eliminar
+          variant: "CUSTOM",                                                  // Solo permite eliminar voces personalizadas (no del sistema)
+          orgId: ctx.orgId,                                                   // Verifica que la voz pertenezca a la organización
+        },
+        select: { id: true, r2ObjectKey: true },                              // Selecciona solo los campos necesarios
+      });
+
+      if (!voice) {                                                       // Si no se encuentra la voz
+        throw new TRPCError({                                             // Lanza error 404
+          code: "NOT_FOUND",
+          message: "Voice not found",
+        });
+      }
+
+      await prisma.voice.delete({ where: { id: voice.id } });             // Elimina la voz de la base de datos
+
+      if (voice.r2ObjectKey) {                                            // Si la voz tiene audio almacenado en R2
+        await deleteAudio(voice.r2ObjectKey).catch(() => { });            // Elimina el archivo de audio (ignora errores)
+      }
+
+      return { success: true };                                           // Retorna confirmación de éxito
+    }),
+
+});
+
 
 
 
