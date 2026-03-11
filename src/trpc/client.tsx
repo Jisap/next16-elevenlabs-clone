@@ -8,6 +8,7 @@ import { createTRPCContext } from '@trpc/tanstack-react-query';
 import { useState } from 'react';
 import { makeQueryClient } from './query-client';
 import type { AppRouter } from './routers/_app';
+import SuperJSON from 'superjson';
 
 /**
  *  Este archivo configura la infraestructura de red de tu frontend. Garantiza que:
@@ -44,32 +45,30 @@ function getUrl() {                                                         // U
   return `${base}/api/trpc`;
 }
 
-export function TRPCReactProvider(                                          // Componente que envuelve la aplicación y proporciona el contexto de tRPC
+export function TRPCReactProvider(                                          // Envuelve la app con los contextos de tRPC y React Query — necesario para usar trpc y useQuery en cualquier componente hijo
   props: Readonly<{
     children: React.ReactNode;
   }>,
 ) {
 
-  const queryClient = getQueryClient();                                     // Cliente de tanstack query (singleton)
+  const queryClient = getQueryClient();                                     // Singleton del cliente de React Query — misma instancia en server y client para compartir cache
 
-  const [trpcClient] = useState(() =>                                       // Cliente de tRPC
-    createTRPCClient<AppRouter>({                                           // Solo se crea una vez cuando se renderiza el componente, con tipado AppRouter -> procedimientos, argumentos que necesitas y que devuelven
-      links: [                                                              // Agrupa las peticiones en una sola para mayor eficiencia
-        httpBatchLink({
-          // transformer: superjson, <-- if you use a data transformer
-          url: getUrl(),                                                    // le dice al httpBatchLink a qué dirección URL debe enviar las peticiones 
+  const [trpcClient] = useState(() =>                                       // useState sin setter — se crea una sola vez y nunca se re-inicializa aunque el componente se re-renderice
+    createTRPCClient<AppRouter>({                                           // AppRouter aporta tipado completo: procedimientos disponibles, argumentos que aceptan y lo que devuelven
+      links: [                                                              // Pipeline por donde pasan todas las peticiones antes de llegar al servidor
+        httpBatchLink({                                                     // Agrupa múltiples llamadas tRPC simultáneas en una sola petición HTTP — reduce latencia
+          transformer: SuperJSON,                                           // Serializa/deserializa con SuperJSON — preserva tipos como Date, Set, Map en el viaje cliente ↔ servidor
+          url: getUrl(),                                                    // URL del endpoint tRPC — varía entre server (/api/trpc) y client (URL absoluta con dominio)
         }),
       ],
     }),
   );
 
   return (
-    // Habilita react Query
-    <QueryClientProvider
+    <QueryClientProvider                                                    // Inyecta el cliente de React Query en el árbol — habilita useQuery, useMutation, etc. en los hijos
       client={queryClient}
     >
-      { }
-      <TRPCProvider
+      <TRPCProvider                                                         // Inyecta el cliente de tRPC y lo conecta con React Query — enruta las llamadas tRPC a través de la cache
         trpcClient={trpcClient}
         queryClient={queryClient}
       >

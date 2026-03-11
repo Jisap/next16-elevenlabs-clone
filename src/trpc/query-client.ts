@@ -4,21 +4,24 @@ import {
 } from '@tanstack/react-query';
 import superjson from 'superjson';
 
-export function makeQueryClient() {                   // Cliente de tanstack query
-  return new QueryClient({                            // Opciones por defecto del cliente de tanstack query
+export function makeQueryClient() {                   // Crea una instancia del cliente de React Query con configuración por defecto
+  return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 30 * 1000,                         // Tiempo en el que los datos se consideran frescos
+        staleTime: 30 * 1000,                         // Los datos se consideran frescos 30s — evita refetches innecesarios
       },
-      dehydrate: {                                    // Serialización de datos (datos del servidor convertidos a un formato que el navegdor pueda leer)
-        // serializeData: superjson.serialize,
+      dehydrate: {                                    // DESHIDRATAR: saca los datos de la cache del servidor y los aplana para enviarlos al cliente
+        serializeData: superjson.serialize,           // Serializa con SuperJSON en lugar de JSON nativo — preserva tipos como Date, Set, Map...
         shouldDehydrateQuery: (query) =>
           defaultShouldDehydrateQuery(query) ||
-          query.state.status === 'pending',
+          query.state.status === 'pending',           // Incluye también queries en vuelo — el cliente hereda el estado y no hace fetch duplicado (Suspense)
       },
-      hydrate: {                                      // Deserialización de los datos (datos del server "deshidratados" rellenan la cache de react-query en el cliente)
-        // deserializeData: superjson.deserialize,
+      hydrate: {                                      // HIDRATAR: recibe los datos del servidor y rellena la cache del cliente con ellos
+        deserializeData: superjson.deserialize,       // Deserializa con SuperJSON — reconstruye los tipos originales (Date, Set, Map...) antes de meter los datos en la cache
       },
     },
   });
 }
+
+// server -> Deshidrata -> serializa -> texto plano -> envía al cliente -> Hidrata -> deserializa
+//         (saca de cache)                                               (pone en cache) 
