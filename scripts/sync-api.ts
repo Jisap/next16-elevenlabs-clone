@@ -23,6 +23,8 @@
  * el formato de respuesta, etc. No es algo que corras constantemente, sino
  * únicamente cuando haya cambios en el backend Python.
  */
+
+
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";                                          // Utilidad para convertir la URL del archivo actual en una ruta de directorio
