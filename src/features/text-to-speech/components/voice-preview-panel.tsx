@@ -17,6 +17,7 @@ type VoicePreviewPanelVoice = {
   name: string;
 };
 
+// Utilidad para transformar segundos en formato MM:SS de forma consistente
 function formatTime(seconds: number): string {
   return format(new Date(seconds * 1000), "mm:ss");
 };
@@ -34,6 +35,7 @@ export function VoicePreviewPanel({
   const selectedVoiceName = voice?.name ?? null;
   const selectedVoiceSeed = voice?.id ?? null;
 
+  // Hook personalizado que encapsula la instancia de Wavesurfer.js y el control del audio
   const {
     containerRef,
     isPlaying,
@@ -48,9 +50,11 @@ export function VoicePreviewPanel({
     autoplay: true,
   });
 
+  // Lógica de descarga: sanitiza el texto para crear un nombre de archivo amigable (slug)
   const handleDownload = () => {
     setIsDownloading(true);
 
+    // Remueve caracteres especiales y limita el largo para evitar errores en el sistema de archivos
     const safeName =
       text
         .slice(0, 50)
@@ -78,6 +82,7 @@ export function VoicePreviewPanel({
 
       {/* Content */}
       <div className="relative flex flex-1 items-center justify-center">
+        {/* Overlay de carga que se sincroniza con el estado de inicialización de la onda */}
         {!isReady && (
           <div className="absolute inset-0 z-10 flex items-center justify-center">
             <Badge
@@ -89,6 +94,7 @@ export function VoicePreviewPanel({
             </Badge>
           </div>
         )}
+        {/* Referencia crucial: aquí es donde Wavesurfer inyecta el canvas de la onda */}
         <div
           ref={containerRef}
           className={cn(
@@ -98,6 +104,7 @@ export function VoicePreviewPanel({
         />
       </div>
       {/* Time display */}
+      {/* Usa font-tabular-nums para evitar que el texto salte mientras el tiempo avanza */}
       <div className="flex items-center justify-center">
         <p className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">
           {formatTime(currentTime)}&nbsp;
