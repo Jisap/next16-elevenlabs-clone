@@ -18,15 +18,34 @@ export const trpc = createTRPCOptionsProxy({          // Crea un proxy que permi
   queryClient: getQueryClient,
 });
 
-// HydrateClient: El puente entre servidor y cliente. 
+
+// Flujo detallado de HydrateClient
 //
-// dehydrate(queryClient)  →  serializa el estado a JSON plano
-//         │
-//         ▼
-// HydrationBoundary  →  envía ese JSON en el HTML al navegador
-//         │
-//         ▼
-// Navegador  →  TanStack rehidrata ese JSON en el QueryClient del cliente
+//    dehydrate(queryClient)
+// 
+// │  1. Ejecuta las queries y llena su cache con datos reales
+// │     { createdAt: Date(2024-01 - 15), tags: Set(["a", "b"]) }
+// │
+// │  2. DESHIDRATA — saca esos datos de la cache
+// │
+// │  3. SERIALIZA(SuperJSON) — los convierte a texto plano seguro
+// │     { json: "...", meta: { createdAt: "Date", tags: "Set" } }
+// │                                        ↑
+// │                              guarda los tipos aquí
+// ↓
+// ════ VIAJA POR LA RED COMO TEXTO ════
+// ↓
+// CLIENTE(Browser)
+//
+//    HydrationBoundary
+// │
+// │  4. DESERIALIZA(SuperJSON) — reconstruye los tipos originales
+// │     { createdAt: Date(2024-01 - 15), tags: Set(["a", "b"]) }
+// │
+// │  5. HIDRATA — mete esos datos en su propia cache de React Query
+// │
+// │  6. Tu componente usa useQuery() y ya tiene los datos listos
+// │     sin hacer ninguna llamada extra al servidor
 
 export function HydrateClient(props: { children: React.ReactNode }) {
 

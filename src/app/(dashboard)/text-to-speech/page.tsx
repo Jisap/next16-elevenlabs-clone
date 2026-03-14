@@ -18,9 +18,10 @@ const TextToSpeechPage = async ({
 
   const { text, voiceId } = await searchParams;
 
-  prefetch(trpc.voices.getAll.queryOptions()); // Ejecuta la query en servidor y mete
+  prefetch(trpc.voices.getAll.queryOptions());
+  // Ejecuta la query en servidor y mete
   // el resultado en la cache — arranca el
-  // ciclo serializar → deshidratar → deserializar → hidratar
+  // ciclo deshidratar → serializar → deserializar → hidratar
 
   return (
     <>
