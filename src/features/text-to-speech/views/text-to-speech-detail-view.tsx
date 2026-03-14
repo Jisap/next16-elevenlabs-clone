@@ -79,6 +79,7 @@ const TextToSpeechDetailView = ({ generationId }: { generationId: string }) => {
               text={data.text}
             />
           </div>
+
           <SettingsPanel />
         </div>
       </TextToSpeechForm>

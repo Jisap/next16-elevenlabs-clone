@@ -3,6 +3,8 @@
 import { z } from "zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 import { formOptions } from "@tanstack/react-form";
 import { useAppForm } from "@/hooks/use-app-form";
 
@@ -51,6 +53,10 @@ export const TextToSpeechForm = ({
   defaultValues: TTSFormValues;
 }) => {
 
+  const trpc = useTRPC();
+  const router = useRouter();
+  const createMutation = useMutation(trpc.generations.create.mutationOptions({}))
+
   const form = useAppForm({
     ...ttsFormOptions,
     defaultValues: defaultValues ?? defaultTTSValues,
@@ -59,8 +65,18 @@ export const TextToSpeechForm = ({
     },
     onSubmit: async ({ value }) => {
       try {
-        console.log(value)
-        // TODO
+        const data = await createMutation.mutateAsync({
+          text: value.text.trim(),
+          voiceId: value.voiceId,
+          temperature: value.temperature,
+          topP: value.topP,
+          topK: value.topK,
+          repetitionPenalty: value.repetitionPenalty,
+        });
+
+        toast.success("Audio generated successfully!");
+        router.push(`/text-to-speech/${data.id}`);
+
       } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to generate audio";
         toast.error(message);
