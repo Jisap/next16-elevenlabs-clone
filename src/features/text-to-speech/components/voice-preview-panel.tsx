@@ -63,12 +63,12 @@ export function VoicePreviewPanel({
         .replace(/^-|-$/g, "")
         .toLowerCase() || "speech";
 
-    const link = document.createElement("a");
-    link.href = audioUrl;
-    link.download = `${safeName}.wav`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const link = document.createElement("a"); // Crea un elemento <a> para simular una descarga
+    link.href = audioUrl;                     // Establece la URL del audio como origen de la descarga
+    link.download = `${safeName}.wav`;        // Establece el nombre del archivo a descargar
+    document.body.appendChild(link);          // Agrega el enlace al DOM
+    link.click();                             // Simula un clic en el enlace para iniciar la descarga
+    document.body.removeChild(link);          // Elimina el enlace del DOM
 
     setTimeout(() => setIsDownloading(false), 1000);
   };
