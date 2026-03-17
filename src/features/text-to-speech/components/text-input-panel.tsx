@@ -9,6 +9,9 @@ import { useStore } from "@tanstack/react-form"
 import { GenerateButton } from "./generate-button"
 
 import { COST_PER_UNIT, TEXT_MAX_LENGTH } from "../data/constants"
+import { SettingsDrawer } from "./settingsDrawer"
+import { HistoryDrawer } from "./history-drawer"
+import { VoiceSelectorButton } from "./voice-selector-button"
 
 
 export const TextInputPanel = () => {
@@ -43,6 +46,14 @@ export const TextInputPanel = () => {
       <div className="shrink-0 p-4 lg:p-6">
         {/* Mobile layout */}
         <div className="flex flex-col gap-3 lg:hidden">
+          <div className="flex items-center gap-2">
+            <SettingsDrawer>
+              <VoiceSelectorButton />
+            </SettingsDrawer>
+
+            <HistoryDrawer />
+          </div>
+
           <GenerateButton
             size="sm"
             disabled={isSubmitting || !isValid}

@@ -7,7 +7,7 @@ import {
   TabsTrigger
 } from "@/components/ui/tabs";
 import { SettingsPanelSettings } from "./settings-panel-settings";
-import SettingsPanelHistory from "./setting-pannel-history";
+import { SettingsPanelHistory } from "./setting-pannel-history";
 
 const tabTriggerClassName =
   "flex-1 h-full gap-2 bg-transparent rounded-none border-x-0 border-t-0 border-b-px border-b-transparent shadow-none data-[state=active]:border-b-foreground group-data-[variant=default]/tabs-list:data-[state=active]:shadow-none";

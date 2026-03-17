@@ -8,7 +8,7 @@ import { formatDistanceToNow } from "date-fns";
 import { AudioLines, AudioWaveform, Clock } from "lucide-react";
 import Link from "next/link";
 
-const SettingsPanelHistory = () => {
+export const SettingsPanelHistory = () => {
 
   const trpc = useTRPC();
   const { data: generations } = useSuspenseQuery(trpc.generations.getAll.queryOptions());
@@ -81,5 +81,5 @@ const SettingsPanelHistory = () => {
   )
 }
 
-export default SettingsPanelHistory
+
 
