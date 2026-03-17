@@ -12,6 +12,7 @@ import { COST_PER_UNIT, TEXT_MAX_LENGTH } from "../data/constants"
 import { SettingsDrawer } from "./settingsDrawer"
 import { HistoryDrawer } from "./history-drawer"
 import { VoiceSelectorButton } from "./voice-selector-button"
+import { PromptSuggestions } from "./propmt-suggestions"
 
 
 export const TextInputPanel = () => {
@@ -95,9 +96,9 @@ export const TextInputPanel = () => {
           </div>
         ) : (
           <div className="hidden lg:block">
-            <p className="text-sm text-muted-foreground">
-              Get started by typing or pasting your text here...
-            </p>
+            <PromptSuggestions
+              onSelect={(prompt) => form.setFieldValue("text", prompt)}
+            />
           </div>
         )}
       </div>
