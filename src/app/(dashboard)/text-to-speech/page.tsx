@@ -23,6 +23,8 @@ const TextToSpeechPage = async ({
   // el resultado en la cache — arranca el
   // ciclo deshidratar → serializar → deserializar → hidratar
 
+  prefetch(trpc.generations.getAll.queryOptions());
+
   return (
     <>
       <HydrateClient>                                                {/* Transfiere la cache del servidor al cliente */}
