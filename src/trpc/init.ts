@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import { auth } from '@clerk/nextjs/server';
 import { initTRPC, TRPCError } from '@trpc/server';
 import { cache } from 'react';
@@ -15,10 +16,17 @@ const t = initTRPC.create({                                             // Insta
   transformer: SuperJSON,                                               // SuperJSON intercepta TODAS las respuestas de tRPC
 });
 
+const sentryMiddleware = t.middleware(                                  // Captura errores de tRPC
+  Sentry.trpcMiddleware({
+    attachRpcInput: true,                                               // Adjunta el input de tRPC a Sentry cuando se produce un error
+  }),
+);
+
+
 // Base router and procedure helpers
 export const createTRPCRouter = t.router;                               // Router de tRPC
 export const createCallerFactory = t.createCallerFactory;               // Factory de tRPC (server-side caller for a router)
-export const baseProcedure = t.procedure;                               // Public Procedure de tRPC
+export const baseProcedure = t.procedure.use(sentryMiddleware);         // Public Procedure de tRPC con captura de errores
 
 // Authenticated procedure - calls auth() only when needed
 export const authProcedure = baseProcedure.use(async ({ next }) => {

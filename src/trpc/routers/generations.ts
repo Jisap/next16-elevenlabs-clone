@@ -1,4 +1,4 @@
-//import * as Sentry from "@sentry/nextjs";
+import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 //import { polar } from "@/lib/polar";
 import { env } from "@/lib/env";
@@ -120,11 +120,11 @@ export const generationsRouter = createTRPCRouter({
         parseAs: "arrayBuffer",                                         //  La respuesta llega como ArrayBuffer (bytes de audio crudo)
       });
 
-      // Sentry.logger.info("Generation started", {
-      //   orgId: ctx.orgId,
-      //   voiceId: input.voiceId,
-      //   textLength: input.text.length,
-      // });
+      Sentry.logger.info("Generation started", {                        // Logger de Sentry,info "Generation started"
+        orgId: ctx.orgId,
+        voiceId: input.voiceId,
+        textLength: input.text.length,
+      });
 
       if (error) {
         throw new TRPCError({
@@ -175,10 +175,10 @@ export const generationsRouter = createTRPCRouter({
           },
         });
 
-        // Sentry.logger.info("Audio generated", {
-        //   orgId: ctx.orgId,
-        //   generationId: generation.id,
-        // });
+        Sentry.logger.info("Audio generated", {                               // Logger de Sentry.info "Audio generated"
+          orgId: ctx.orgId,
+          generationId: generation.id,
+        });
       } catch {
         // Si cualquiera de los 3 pasos anteriores falla, limpia el registro
         // de BD para no dejar datos huérfanos (un registro sin audio asociado)
@@ -192,10 +192,10 @@ export const generationsRouter = createTRPCRouter({
             .catch(() => { });
         }
 
-        // Sentry.logger.error("Generation failed", {
-        //   orgId: ctx.orgId,
-        //   voiceId: input.voiceId,
-        // });
+        Sentry.logger.error("Generation failed", {                        // Logger de Sentry.error "Generation failed"
+          orgId: ctx.orgId,
+          voiceId: input.voiceId,
+        });
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
