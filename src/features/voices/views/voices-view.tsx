@@ -10,11 +10,11 @@ import { VoicesToolbar } from "../components/voices-toolbar";
 
 function VoicesContent() {
   const trpc = useTRPC();
-  const [query] = useQueryState(
+  const [query] = useQueryState( // Hook para leer el query parameter "query" desde la url
     "query",
     voicesSearchParams.query
   );
-  const { data } = useSuspenseQuery(
+  const { data } = useSuspenseQuery( // Esperamos a que la data precargada este disponible
     trpc.voices.getAll.queryOptions({ query })
   );
 
