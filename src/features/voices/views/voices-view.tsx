@@ -21,13 +21,13 @@ function VoicesContent() {
   return (
     <>
       <VoicesList
-      // title="Team Voices"
-      // voices={data.custom}
+        title="Team Voices"
+        voices={data.custom}
       />
 
       <VoicesList
-      // title="Built-in Voices"
-      // voices={data.system}
+        title="Built-in Voices"
+        voices={data.system}
       />
     </>
   );
