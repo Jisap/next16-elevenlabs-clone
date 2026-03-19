@@ -55,10 +55,9 @@ function parseLanguage(locale: string) {                               // Convie
 
 export const VoiceCard = ({ voice }: VoiceCardProps) => {
 
-  const isLoading = false;
-  const isPlaying = false;
   const { flag, region } = parseLanguage(voice.language);
   const audioSrc = `/api/voices/${encodeURIComponent(voice.id)}`;
+  const { isPlaying, isLoading, togglePlay } = useAudioPlayback(audioSrc);
 
   return (
     <div className="flex items-center gap-1 overflow-hidden rounded-xl border pr-3 lg:pr-6">
@@ -99,7 +98,7 @@ export const VoiceCard = ({ voice }: VoiceCardProps) => {
           size="icon-sm"
           className="rounded-full"
           disabled={isLoading}
-          onClick={() => { }}
+          onClick={togglePlay}
         >
           {isLoading ? (
             <Spinner className="size-4" />
