@@ -14,11 +14,11 @@ import { voicesSearchParams } from "@/features/voices/lib/params";
 
 export const VoicesToolbar = () => {
 
-  const [query, setQuery] = useQueryState(             // Hook para leer el query parameter "query" desde la url
+  const [query, setQuery] = useQueryState(              // Hook para leer el query parameter "query" desde la url
     "query",
     voicesSearchParams.query
   );
-  const [localQuery, setLocalQuery] = useState(query); // Estado local para el input
+  const [localQuery, setLocalQuery] = useState(query);  // Estado local para el input
 
   const debouncedSetQuery = useDebouncedCallback(       // Hook para debounced setQuery
     (value: string) => setQuery(value),
@@ -51,6 +51,20 @@ export const VoicesToolbar = () => {
               }}
             />
           </InputGroup>
+
+          <div className="ml-auto hidden lg:block">
+            <Button size="sm">
+              <Sparkles />
+              Custom voice
+            </Button>
+          </div>
+
+          <div className="lg:hidden">
+            <Button size="sm" className="w-full">
+              <Sparkles />
+              Custom voice
+            </Button>
+          </div>
         </div>
       </div>
     </div>
