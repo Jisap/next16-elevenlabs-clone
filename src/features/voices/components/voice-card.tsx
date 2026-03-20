@@ -38,26 +38,60 @@ interface VoiceCardProps {
 
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" }); // Crea un objeto para convertir códigos de país en nombres de regiones
 
-function parseLanguage(locale: string) {                               // Convierte el locale (ej. "en-US") en un objeto con el flag y la región
-  const [, country] = locale.split("-");                                  // Divide el locale por el guion para separar el país
-  if (!country) return { flag: "", region: locale };                      // Si no hay país, devuelve el locale
+function parseLanguage(locale: string) {
+  const parts = locale.split("-");                                             // Convierte el locale (ej. "en-US") en un objeto con el flag y la región
+  if (parts.length < 2) return { flag: "", region: locale };                   // Si no hay guion, devolvemos el locale tal cual sin bandera
 
-  const flag = [...country.toUpperCase()]                                 // Convierte el país a mayúsculas y lo convierte en un array
-    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))     // Convierte cada letra en un emoji de bandera
-    .join("");                                                            // Une los emojis para formar la bandera
+  const countryCode = parts[parts.length - 1].toUpperCase();                   // Intentamos usar la última parte como el código de país (ISO 3161-1)
 
-  const region = regionNames.of(country) ?? country;                      // Obtiene el nombre de la región a partir del país
+  // 1. Generar la bandera (solo si el código tiene exactamente 2 letras)
+  let flag = "";
+  if (countryCode.length === 2 && /^[A-Z]{2}$/.test(countryCode)) {
+    flag = [...countryCode]
+      .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
+      .join("");
+  }
 
-  return { flag, region };                                                // Devuelve un objeto con la bandera y la región
+  // 2. Obtener el nombre de la región de forma segura
+  let region = countryCode;
+  try {
+    // regionNames.of puede lanzar RangeError si el código no es válido para el tipo "region"
+    region = regionNames.of(countryCode) ?? countryCode;
+  } catch {
+    // Si falla (ej. zh-Hans donde "Hans" no es región), buscamos si hay una parte que sí sea región
+    // O simplemente devolvemos la última parte como fallback
+    region = countryCode;
+  }
+
+  return { flag, region };
 };
+
 
 
 
 export const VoiceCard = ({ voice }: VoiceCardProps) => {
 
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { flag, region } = parseLanguage(voice.language);
   const audioSrc = `/api/voices/${encodeURIComponent(voice.id)}`;
   const { isPlaying, isLoading, togglePlay } = useAudioPlayback(audioSrc);
+
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation(
+    trpc.voices.delete.mutationOptions({
+      onSuccess: () => {
+        toast.success("Voice deleted successfully");
+        queryClient.invalidateQueries({
+          queryKey: trpc.voices.getAll.queryKey(),
+        });
+      },
+      onError: (error) => {
+        toast.error(error.message ?? "Failed to delete voice");
+      },
+    }),
+  );
 
   return (
     <div className="flex items-center gap-1 overflow-hidden rounded-xl border pr-3 lg:pr-6">
@@ -127,8 +161,53 @@ export const VoiceCard = ({ voice }: VoiceCardProps) => {
                 <span className="font-medium">Use this voice</span>
               </Link>
             </DropdownMenuItem>
+
+            {voice.variant === "CUSTOM" && (
+              <DropdownMenuItem
+                onClick={() => setShowDeleteDialog(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="size-4 text-destructive" />
+                <span className="font-medium">Delete voice</span>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {voice.variant === "CUSTOM" && (
+          <AlertDialog
+            open={showDeleteDialog}
+            onOpenChange={setShowDeleteDialog}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete voice</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete &quot;{voice.name}&quot;? This
+                  action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleteMutation.isPending}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  disabled={deleteMutation.isPending}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    deleteMutation.mutate(
+                      { id: voice.id },
+                      { onSuccess: () => setShowDeleteDialog(false) },
+                    );
+                  }}
+                >
+                  {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
     </div>
   )
