@@ -154,7 +154,9 @@ export const VoiceCard = ({ voice }: VoiceCardProps) => {
             </Button>
           </DropdownMenuTrigger>
 
+          {/* Menu desplegable con las opciones de la voz */}
           <DropdownMenuContent align="end">
+            {/* Opción para usar la voz en el text-to-speech */}
             <DropdownMenuItem asChild>
               <Link href={`/text-to-speech?voiceId=${voice.id}`}>
                 <Mic className="size-4 text-foreground" />
@@ -162,9 +164,10 @@ export const VoiceCard = ({ voice }: VoiceCardProps) => {
               </Link>
             </DropdownMenuItem>
 
+            {/* Opción para eliminar la voz (solo si es custom) */}
             {voice.variant === "CUSTOM" && (
               <DropdownMenuItem
-                onClick={() => setShowDeleteDialog(true)}
+                onClick={() => setShowDeleteDialog(true)} // No borra directamente, solo abre el diálogo de confirmación
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="size-4 text-destructive" />
@@ -174,6 +177,7 @@ export const VoiceCard = ({ voice }: VoiceCardProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* Diálogo de confirmación para eliminar la voz */}
         {voice.variant === "CUSTOM" && (
           <AlertDialog
             open={showDeleteDialog}
