@@ -10,6 +10,7 @@ import {
   InputGroupAddon,
 } from "@/components/ui/input-group";
 import { voicesSearchParams } from "@/features/voices/lib/params";
+import { VoiceCreateDialog } from "./voice-create-dialog";
 
 
 export const VoicesToolbar = () => {
@@ -53,17 +54,21 @@ export const VoicesToolbar = () => {
           </InputGroup>
 
           <div className="ml-auto hidden lg:block">
-            <Button size="sm">
-              <Sparkles />
-              Custom voice
-            </Button>
+            <VoiceCreateDialog>
+              <Button size="sm">
+                <Sparkles />
+                Custom voice
+              </Button>
+            </VoiceCreateDialog>
           </div>
 
           <div className="lg:hidden">
-            <Button size="sm" className="w-full">
-              <Sparkles />
-              Custom voice
-            </Button>
+            <VoiceCreateDialog>
+              <Button size="sm" className="w-full">
+                <Sparkles />
+                Custom voice
+              </Button>
+            </VoiceCreateDialog>
           </div>
         </div>
       </div>
