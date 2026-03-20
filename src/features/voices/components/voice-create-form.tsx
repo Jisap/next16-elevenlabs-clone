@@ -295,6 +295,7 @@ export function VoiceCreateForm({
         category,
         language,
       });
+
       if (description) {                                                                // Si hay descripción, la añade a los parámetros
         params.set("description", description);
       }
@@ -403,6 +404,7 @@ export function VoiceCreateForm({
                       isInvalid={isInvalid}
                     />
                   </TabsContent>
+
                   <TabsContent value="record">
                     <VoiceRecorder
                       file={field.state.value}
