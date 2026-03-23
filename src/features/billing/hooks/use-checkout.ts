@@ -5,7 +5,7 @@ import { useTRPC } from "@/trpc/client";
 export function useCheckout() {
   const trpc = useTRPC();
   const mutation = useMutation(
-    trpc.billing.createCheckout.mutationOptions({})
+    trpc.billing.createCheckout.mutationOptions({}) // 
   );
 
   const checkout = useCallback(() => {
