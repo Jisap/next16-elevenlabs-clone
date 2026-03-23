@@ -211,23 +211,29 @@ export const generationsRouter = createTRPCRouter({
       }
 
       // Ingest usage event to Polar (fire-and-forget, don't block response)
-      // polar.events
-      //   .ingest({
-      //     events: [
-      //       {
-      //         name: env.POLAR_METER_TTS_GENERATION,
-      //         externalCustomerId: ctx.orgId,
-      //         metadata: { [env.POLAR_METER_TTS_PROPERTY]: input.text.length },
-      //         timestamp: new Date(),
-      //       },
-      //     ],
-      //   })
-      //  .catch(() => {
-      //    // Silently fail - don't break the user experience for metering errors
-      //  });
+      polar.events                                                                  // Es una llamada a la API de Polar para notificar que se ha realizado una acción cobrable.
+        .ingest({                                                                   // Se le pasa un array de eventos. En este caso, solo uno.
+          events: [
+            {
+              name: env.POLAR_METER_TTS_GENERATION,                                 // Nombre del evento (ej: "tts_generation")
+              externalCustomerId: ctx.orgId,                                        // Quién lo consumió (la organización del usuario)
+              metadata: { [env.POLAR_METER_TTS_PROPERTY]: input.text.length },      // Cuánto consumió. Se cobra por longitud del texto.
+              timestamp: new Date(),                                                // Momento en que ocurrió
+            },
+          ],
+        })
+        .catch(() => {
+          // Silently fail - don't break the user experience for metering errors
+        });
 
       return {
         id: generationId,
       };
     }),
 });
+
+// 1. Validación de permisos: Se verifica si la organización tiene una suscripción activa en Polar.
+// 2. Generación: Se llama a la IA (Chatterbox/Modal) para crear el audio.
+// 3. Persistencia: Se guarda el registro en la base de datos (Prisma) y el archivo de audio en la nube (R2).
+// 4. Métrica: Una vez que todo lo anterior ha sido exitoso, se envía el evento de "Gasto" a Polar.
+// 5. Respuesta: Se devuelve el ID de la generación al cliente
