@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { UsageContainer } from "@/features/billing/components/usage-container";
 
 interface MenuItem {
   title: string;
@@ -203,6 +204,9 @@ export const DashboardSidebar = () => {
       <div className="border-b border-text-muted-foreground border-border" />
 
       <SidebarFooter className="gap-3 py-3">
+
+        <UsageContainer />
+
         <SidebarMenu>
           <SidebarMenuItem>
             <UserButton
