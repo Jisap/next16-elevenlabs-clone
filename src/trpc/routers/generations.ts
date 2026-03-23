@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
-//import { polar } from "@/lib/polar";
+import { polar } from "@/lib/polar";
 import { env } from "@/lib/env";
 import { TRPCError } from "@trpc/server";
 import { chatterbox } from "@/lib/chatterbox-client";
@@ -56,27 +56,27 @@ export const generationsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Check for active subscription before generation
-      // try {
-      //   const customerState = await polar.customers.getStateExternal({
-      //     externalId: ctx.orgId,
-      //   });
-      //   const hasActiveSubscription =
-      //     (customerState.activeSubscriptions ?? []).length > 0;
-      //   if (!hasActiveSubscription) {
-      //     throw new TRPCError({
-      //       code: "FORBIDDEN",
-      //       message: "SUBSCRIPTION_REQUIRED",
-      //     });
-      //   }
-      // } catch (err) {
-      //   if (err instanceof TRPCError) throw err;
-      //   // Customer doesn't exist in Polar yet -> no subscription
-      //   throw new TRPCError({
-      //     code: "FORBIDDEN",
-      //     message: "SUBSCRIPTION_REQUIRED",
-      //   });
-      // }
+      //Check for active subscription before generation
+      try {
+        const customerState = await polar.customers.getStateExternal({
+          externalId: ctx.orgId,
+        });
+        const hasActiveSubscription =
+          (customerState.activeSubscriptions ?? []).length > 0;
+        if (!hasActiveSubscription) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "SUBSCRIPTION_REQUIRED",
+          });
+        }
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        // Customer doesn't exist in Polar yet -> no subscription
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "SUBSCRIPTION_REQUIRED",
+        });
+      }
 
       const voice = await prisma.voice.findUnique({                   // Busca en la base de datos la voz solicitada. 
         where: {
