@@ -44,6 +44,7 @@ export const ttsFormOptions = formOptions({                     // Configuració
 
 
 import React from 'react'
+import { useCheckout } from "@/features/billing/hooks/use-checkout";
 
 export const TextToSpeechForm = ({
   children,
@@ -56,6 +57,8 @@ export const TextToSpeechForm = ({
   const trpc = useTRPC();
   const router = useRouter();
   const createMutation = useMutation(trpc.generations.create.mutationOptions({}))
+
+  const { checkout } = useCheckout();
 
   const form = useAppForm({
     ...ttsFormOptions,
@@ -79,7 +82,16 @@ export const TextToSpeechForm = ({
 
       } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to generate audio";
-        toast.error(message);
+        if (message === "SUBSCRIPTION_REQUIRED") {
+          toast.error("Subscription required", {
+            action: {
+              label: "Subscribe",
+              onClick: () => checkout(),
+            },
+          });
+        } else {
+          toast.error(message);
+        }
       }
     }
   })

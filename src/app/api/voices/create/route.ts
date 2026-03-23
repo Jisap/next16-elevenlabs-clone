@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { parseBuffer } from "music-metadata";
 import { z } from "zod";
-//import { polar } from "@/lib/polar";
+import { polar } from "@/lib/polar";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/db";
 import { uploadAudio } from "@/lib/r2";
@@ -31,26 +31,26 @@ const MIN_AUDIO_DURATION_SECONDS = 10;
 
 export async function POST(request: Request) {
   // Autenticación y autorización
-  const { userId, orgId } = await auth();                                 // Requiere ambos identificadores. La presencia de orgId implica que las voces pertenecen a organizaciones, no a usuarios individuales
+  const { userId, orgId } = await auth();                                         // Requiere ambos identificadores. La presencia de orgId implica que las voces pertenecen a organizaciones, no a usuarios individuales
 
   if (!userId || !orgId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Check for active subscription before voice creation
-  // try {
-  //   const customerState = await polar.customers.getStateExternal({
-  //     externalId: orgId,
-  //   });
-  //   const hasActiveSubscription =
-  //     (customerState.activeSubscriptions ?? []).length > 0;
-  //   if (!hasActiveSubscription) {
-  //     return Response.json({ error: "SUBSCRIPTION_REQUIRED" }, { status: 403 });
-  //   }
-  // } catch {
-  //   // Customer doesn't exist in Polar yet -> no subscription
-  //   return Response.json({ error: "SUBSCRIPTION_REQUIRED" }, { status: 403 });
-  // }
+
+  try {
+    const customerState = await polar.customers.getStateExternal({                 // Check for active subscription before voice creation
+      externalId: orgId,
+    });
+    const hasActiveSubscription =
+      (customerState.activeSubscriptions ?? []).length > 0;
+    if (!hasActiveSubscription) {
+      return Response.json({ error: "SUBSCRIPTION_REQUIRED" }, { status: 403 });
+    }
+  } catch {
+    // Customer doesn't exist in Polar yet -> no subscription
+    return Response.json({ error: "SUBSCRIPTION_REQUIRED" }, { status: 403 });
+  }
 
   // Validación de parámetros de consulta
   const url = new URL(request.url);                                                // Se crea una instancia de URL para poder acceder a los query parameters
@@ -179,24 +179,35 @@ export async function POST(request: Request) {
     );
   }
 
-  // Ingest usage event to Polar (fire-and-forget, don't block response)
-  // polar.events
-  //   .ingest({
-  //     events: [
-  //       {
-  //         name: env.POLAR_METER_VOICE_CREATION,
-  //         externalCustomerId: orgId,
-  //         metadata: {},
-  //         timestamp: new Date(),
-  //       },
-  //     ],
-  //   })
-  //   .catch(() => {
-  //     // Silently fail - don't break the user experience for metering errors
-  //   });
+  // Ingest usage event to Polar 
+  // (fire-and-forget, don't block response)
+  polar.events                                                                 // Registra en Polar que la organización ha consumido una unidad de su cuota de "Voces Personalizadas".
+    .ingest({
+      events: [
+        {
+          name: env.POLAR_METER_VOICE_CREATION,                                 // Nombre del evento (ej: "voice_creation")
+          externalCustomerId: orgId,                                            // Quién lo consumió (la organización del usuario)
+          metadata: {},                                                         // Aqui solo se cobra por el evento en si, no por la cantidad de caracteres
+          timestamp: new Date(),                                                // Momento en que ocurrió
+        },
+      ],
+    })
+    .catch(() => {
+      // Silently fail - don't break the user experience for metering errors
+    });
 
   return Response.json(
     { name, message: "Voice created successfully" },
     { status: 201 },
   );
 };
+
+// 1. Auth & Billing Check: Al inicio, verifica userId y si hasActiveSubscription es verdadero en Polar.Si no paga, no pasa de la línea 45.
+// 2. Validación Técnica: Verifica el tamaño del archivo, el tipo MIME y la duración mínima del audio(líneas 54 - 128).
+// 3. Persistencia(Transacción manual):
+//    Crea el registro en Prisma.
+//    Sube el archivo a Cloudflare R2.
+//    Actualiza Prisma con la ruta del archivo.
+//    Nota: Si esto falla, el catch (líneas 164 - 178) borra el registro sucio y devuelve error 500, por lo que nunca llegaría al código de Polar.
+// 4. Métrica: Solo si todo lo anterior funcionó, se envía la señal a Polar.
+// 5. Respuesta 201: Se confirma al cliente que la voz está creada.
