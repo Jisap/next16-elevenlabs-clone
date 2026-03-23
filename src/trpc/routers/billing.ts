@@ -5,6 +5,7 @@ import { createTRPCRouter, orgProcedure } from "../init";
 
 export const billingRouter = createTRPCRouter({
 
+  // Es para convertir a un usuario en cliente de pago. 
   createCheckout: orgProcedure.mutation(async ({ ctx }) => {        // Mutación: crea sesión de pago
     const result = await polar.checkouts.create({
       products: [env.POLAR_PRODUCT_ID],                             // Producto a contratar
@@ -22,6 +23,8 @@ export const billingRouter = createTRPCRouter({
     return { checkoutUrl: result.url };                             // Devuelve la URL de pago
   }),
 
+  // Es para gestionar una suscripción existente 
+  // (cambiar plan, ver facturas, cancelar)
   createPortalSession: orgProcedure.mutation(async ({ ctx }) => {   // Mutación: abre portal del cliente
     const result = await polar.customerSessions.create({
       externalCustomerId: ctx.orgId,                                // Identifica al cliente por org
@@ -37,6 +40,8 @@ export const billingRouter = createTRPCRouter({
     return { portalUrl: result.customerPortalUrl };                 // Devuelve la URL del portal
   }),
 
+  // Actúa como guardián que decide cuál 
+  // de los otros dos mostrar.
   getStatus: orgProcedure.query(async ({ ctx }) => {                // Query: estado de suscripción
     try {
       const customerState = await polar.customers.getStateExternal({
